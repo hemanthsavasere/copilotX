@@ -1,0 +1,57 @@
+{
+  "name": "copilotx",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Real-time AI interview copilot",
+  "author": "CopilotX Team",
+  "homepage": "https://github.com/copilotx/copilotx",
+  "main": "./out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "pnpm run typecheck && electron-vite build",
+    "preview": "electron-vite preview",
+    "typecheck": "pnpm run typecheck:node && pnpm run typecheck:web",
+    "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
+    "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "build:sidecar": "cd sidecar && cargo build --release",
+    "build:sidecar:win": "cd sidecar && cargo build --release --target x86_64-pc-windows-gnu",
+    "copy:sidecar": "node scripts/copy-sidecar.js",
+    "copy:sidecar:win": "TARGET_TRIPLE=x86_64-pc-windows-gnu node scripts/copy-sidecar.js",
+    "build:all": "pnpm run build:sidecar && pnpm run copy:sidecar && pnpm run build",
+    "build:all:win": "pnpm run build:sidecar:win && pnpm run copy:sidecar:win && pnpm run build",
+    "build:win": "pnpm run build:all:win && (electron-builder --win --dir || true) && node scripts/zip-win-dist.js",
+    "build:linux": "pnpm run build:all && electron-builder --linux",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@electron-toolkit/preload": "^3.0.2",
+    "@electron-toolkit/utils": "^4.0.0"
+  },
+  "optionalDependencies": {
+    "ffi-napi": "^4.0.3",
+    "ref-napi": "^3.0.3"
+  },
+  "devDependencies": {
+    "@electron-toolkit/tsconfig": "^2.0.0",
+    "@eslint/js": "^9.0.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0",
+    "electron-vite": "^5.0.0",
+    "eslint": "^9.0.0",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "prettier": "^3.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^3.0.0"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["hotkey", "model"],
+  "properties": {
+    "hotkey": {
+      "type": "string",
+      "description": "Electron accelerator string for the global hotkey",
+      "default": "CommandOrControl+Shift+Space"
+    },
+    "model": {
+      "type": "string",
+      "enum": ["gpt-4o", "claude", "claude-sonnet"],
+      "description": "LLM model to use"
+    },
+    "openaiApiKey": {
+      "type": "string",
+      "description": "OpenAI API key (required if model is gpt-4o)"
+    },
+    "anthropicApiKey": {
+      "type": "string",
+      "description": "Anthropic API key (required if model is claude/claude-sonnet)"
+    },
+    "profile": {
+      "type": "string",
+      "enum": ["interview", "sales", "meeting", "presentation", "negotiation"],
+      "default": "interview"
+    },
+    "overlayOpacity": {
+      "type": "number",
+      "minimum": 0.1,
+      "maximum": 1.0,
+      "default": 0.85
+    },
+    "overlayWidth": {
+      "type": "integer",
+      "minimum": 200,
+      "maximum": 800,
+      "default": 320
+    },
+    "overlayHeight": {
+      "type": "integer",
+      "minimum": 200,
+      "maximum": 2000,
+      "default": 600
+    },
+    "overlayPosition": {
+      "type": "string",
+      "enum": ["left", "right", "top", "bottom"],
+      "default": "right"
+    }
+  }
+}

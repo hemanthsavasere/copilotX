@@ -1,0 +1,11 @@
+{
+  "hotkey": "Ctrl+Shift+Space",
+  "model": "gpt-4o",
+  "openaiApiKey": "",
+  "anthropicApiKey": "",
+  "profile": "interview",
+  "overlayOpacity": 0.85,
+  "overlayWidth": 320,
+  "overlayHeight": 600,
+  "overlayPosition": "right"
+}

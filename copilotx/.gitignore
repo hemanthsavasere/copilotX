@@ -1,0 +1,13 @@
+node_modules/
+dist/
+out/
+sidecar/target/
+.env
+.env.*
+*.log
+.DS_Store
+Thumbs.db
+resources/system-helper.exe
+*.tsbuildinfo
+.eslintcache
+.vscode/

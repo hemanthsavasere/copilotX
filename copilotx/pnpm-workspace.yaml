@@ -1,0 +1,5 @@
+allowBuilds:
+  electron: true
+  esbuild: true
+  ffi-napi: true
+  ref-napi: true
