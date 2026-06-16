@@ -1,9 +1,9 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import { electronApp } from '@electron-toolkit/utils'
 import { createOverlayWindow } from './overlay'
-import { startSidecar, stopSidecar, onSidecarMessage, sendCapture } from './ipc'
+import { startSidecar, stopSidecar, onSidecarMessage, sendCapture, sendStopInputMode, sendCaptureWithText } from './ipc'
 import { loadConfig, validateConfig } from './config'
-import { registerHotkey, setProcessingComplete, unregisterAll } from './hotkey'
+import { registerHotkey, setProcessingComplete, unregisterAll, registerInputHotkey, isInInputMode, setInputModeInactive } from './hotkey'
 import { registerPositionHotkeys } from './position'
 
 let overlayWindow: BrowserWindow | null = null
@@ -44,10 +44,22 @@ app.whenReady().then(() => {
         break
       case 'pong':
         break
+      case 'key_event':
+        if (isInInputMode()) {
+          overlayWindow.webContents.send('key-event', msg.key, msg.shift, msg.ctrl)
+        }
+        break
+      case 'input_mode_state':
+        if (msg.state === 'inactive' || msg.state === 'error') {
+          setInputModeInactive()
+          overlayWindow.webContents.send('input-mode-state', msg.state)
+        }
+        break
     }
   })
 
   registerHotkey(config.hotkey, overlayWindow)
+  registerInputHotkey(config.inputHotkey, overlayWindow)
   registerPositionHotkeys(overlayWindow, config.overlayWidth, config.overlayHeight)
 
   ipcMain.handle('trigger-capture', () => {
@@ -58,6 +70,18 @@ app.whenReady().then(() => {
 
   ipcMain.handle('window-close', () => {
     overlayWindow?.hide()
+  })
+
+  ipcMain.handle('send-text-input', (_event, text: string) => {
+    if (!overlayWindow) return
+    overlayWindow.webContents.send('capture-state', 'processing')
+    sendCaptureWithText(text)
+    setInputModeInactive()
+  })
+
+  ipcMain.handle('stop-input-mode', () => {
+    sendStopInputMode()
+    setInputModeInactive()
   })
 
   overlayWindow.webContents.on('dom-ready', () => {
