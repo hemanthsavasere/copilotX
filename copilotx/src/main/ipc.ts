@@ -4,9 +4,13 @@ import * as path from 'path'
 import { is } from '@electron-toolkit/utils'
 
 export interface SidecarMessage {
-  type: 'token' | 'done' | 'error' | 'pong'
+  type: 'token' | 'done' | 'error' | 'pong' | 'key_event' | 'input_mode_state'
   content?: string
   message?: string
+  key?: string
+  shift?: boolean
+  ctrl?: boolean
+  state?: string
 }
 
 export type SidecarMessageHandler = (msg: SidecarMessage) => void
@@ -110,11 +114,23 @@ export function sendPing(): void {
   writeSidecar({ type: 'ping' })
 }
 
+export function sendStartInputMode(): void {
+  writeSidecar({ type: 'start_input_mode' })
+}
+
+export function sendStopInputMode(): void {
+  writeSidecar({ type: 'stop_input_mode' })
+}
+
+export function sendCaptureWithText(content: string): void {
+  writeSidecar({ type: 'capture_with_text', content })
+}
+
 export function onSidecarMessage(handler: SidecarMessageHandler): void {
   messageHandler = handler
 }
 
-function writeSidecar(msg: { type: string }): void {
+function writeSidecar(msg: Record<string, unknown>): void {
   if (!sidecar?.stdin || sidecar.stdin.destroyed) return
   sidecar.stdin.write(JSON.stringify(msg) + '\n')
 }
