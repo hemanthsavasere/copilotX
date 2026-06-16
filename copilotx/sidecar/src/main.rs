@@ -109,6 +109,9 @@ async fn main() {
                 is_processing.store(false, Ordering::SeqCst);
             }
             Command::Shutdown => break,
+            Command::StartInputMode => todo!(),
+            Command::StopInputMode => todo!(),
+            Command::CaptureWithText { .. } => todo!(),
         }
     }
 }

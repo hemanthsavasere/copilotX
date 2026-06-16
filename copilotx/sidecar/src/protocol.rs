@@ -11,6 +11,12 @@ pub enum Command {
     Stop,
     #[serde(rename = "shutdown")]
     Shutdown,
+    #[serde(rename = "start_input_mode")]
+    StartInputMode,
+    #[serde(rename = "stop_input_mode")]
+    StopInputMode,
+    #[serde(rename = "capture_with_text")]
+    CaptureWithText { content: String },
 }
 
 #[derive(Serialize, Debug, PartialEq)]
@@ -24,6 +30,14 @@ pub enum Message {
     Done,
     #[serde(rename = "error")]
     Error { message: String },
+    #[serde(rename = "key_event")]
+    KeyEvent {
+        key: String,
+        shift: bool,
+        ctrl: bool,
+    },
+    #[serde(rename = "input_mode_state")]
+    InputModeState { state: String },
 }
 
 impl Message {
@@ -86,5 +100,47 @@ mod tests {
             message: "fail".to_string(),
         };
         assert_eq!(msg.to_ndjson(), r#"{"type":"error","message":"fail"}"#);
+    }
+
+    #[test]
+    fn test_command_start_input_mode() {
+        let cmd: Command = serde_json::from_str(r#"{"type":"start_input_mode"}"#).unwrap();
+        assert_eq!(cmd, Command::StartInputMode);
+    }
+
+    #[test]
+    fn test_command_stop_input_mode() {
+        let cmd: Command = serde_json::from_str(r#"{"type":"stop_input_mode"}"#).unwrap();
+        assert_eq!(cmd, Command::StopInputMode);
+    }
+
+    #[test]
+    fn test_command_capture_with_text() {
+        let cmd: Command = serde_json::from_str(r#"{"type":"capture_with_text","content":"hello"}"#).unwrap();
+        assert_eq!(cmd, Command::CaptureWithText { content: "hello".to_string() });
+    }
+
+    #[test]
+    fn test_message_key_event() {
+        let msg = Message::KeyEvent { key: "a".into(), shift: false, ctrl: false };
+        assert_eq!(msg.to_ndjson(), r#"{"type":"key_event","key":"a","shift":false,"ctrl":false}"#);
+    }
+
+    #[test]
+    fn test_message_input_mode_state_active() {
+        let msg = Message::InputModeState { state: "active".into() };
+        assert_eq!(msg.to_ndjson(), r#"{"type":"input_mode_state","state":"active"}"#);
+    }
+
+    #[test]
+    fn test_message_input_mode_state_inactive() {
+        let msg = Message::InputModeState { state: "inactive".into() };
+        assert_eq!(msg.to_ndjson(), r#"{"type":"input_mode_state","state":"inactive"}"#);
+    }
+
+    #[test]
+    fn test_message_input_mode_state_error() {
+        let msg = Message::InputModeState { state: "error".into() };
+        assert_eq!(msg.to_ndjson(), r#"{"type":"input_mode_state","state":"error"}"#);
     }
 }
