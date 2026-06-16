@@ -238,3 +238,171 @@ Output:
 ## License
 
 Private — not for redistribution.
+
+
+# AGENTS.md — CopilotX
+
+This file provides instructions for AI coding agents working on the CopilotX
+codebase. Read it in full before making any changes.
+
+## Repository Layout
+copilotx/
+├── sidecar/ # Rust sidecar (system-helper.exe) — compiled separately
+├── src/ # Electron main process + React renderer
+│ ├── main/ # Electron main process (Node.js)
+│ ├── preload/ # Electron preload scripts
+│ └── renderer/ # React UI (Vite + HMR)
+├── config/ # Default config template (config.json)
+├── resources/ # Sidecar binary staging area (for electron-builder)
+├── dist/ # Build output (electron-builder)
+└── win-expanded/ # Test-ready unpacked app
+
+The sidecar and the Electron app are **separate build units**. Never assume
+changes to one automatically affect the other.
+
+## Build System
+
+### Full Clean Build (Windows — Release)
+
+Run all steps in order from `copilotx/`. Do **not** skip `cargo clean` on
+dependency changes. Do **not** copy only the binary.
+
+```powershell
+# 1. Kill any running instances
+Get-Process -Name "CopilotX","electron","system-helper" -ErrorAction SilentlyContinue | Stop-Process -Force
+
+# 2. Clean all artifacts
+pushd sidecar; cargo clean; popd
+Remove-Item -Recurse -Force dist, win-expanded -ErrorAction SilentlyContinue
+
+# 3. Build Rust sidecar
+pushd sidecar; cargo build --release; popd
+
+# 4. Copy sidecar to resources/ (used by electron-builder)
+pnpm run copy:sidecar
+
+# 5. Build Electron app
+pnpm exec electron-vite build
+
+# 6. Package Windows app
+pnpm exec electron-builder --win --dir
+
+# 7. Copy to win-expanded for testing
+New-Item -ItemType Directory -Path win-expanded -Force
+robocopy dist\win-unpacked win-expanded /E /NFL /NDL
+```
+
+### Development (Fast Iteration)
+
+Do **not** run the full build for UI or main-process changes.
+
+```powershell
+# Terminal 1 — Rust watcher (only when sidecar/ changes)
+cd sidecar
+cargo watch -x build
+
+# Terminal 2 — Electron dev server with HMR
+pnpm exec electron-vite dev
+```
+
+When Rust sidecar code changes, run `pnpm run copy:sidecar` after
+`cargo build` before restarting the dev server.
+
+## Branch Names
+
+Use short branch names of at most three words, separated by hyphens.
+Do not use slashes or type prefixes like `feat/` or `fix/`.
+
+Examples: `realtime-stt`, `fix-sidecar-crash`, `update-config-schema`.
+
+## Commits and PR Titles
+
+Use conventional commit-style messages: `type(scope): summary`.
+
+Valid types: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`.
+Scopes: `sidecar`, `main`, `renderer`, `preload`, `config`, `build`, `ipc`.
+
+Examples:
+- `feat(renderer): add voice activity indicator`
+- `fix(sidecar): handle pcm16 buffer overflow`
+- `chore(build): update electron-builder config`
+
+## Style Guide
+
+### General Principles
+
+- Prefer `const` over `let`; avoid reassignment with ternaries or early returns
+- Avoid `else`; use early returns
+- Avoid `any` types in TypeScript
+- Keep functions single-purpose; do not extract single-use helpers preemptively
+- Inline values used only once to reduce variable count
+- Use type inference; avoid explicit type annotations unless needed for exports
+
+### Electron IPC
+
+- All IPC channels must be declared in `preload/` with explicit types
+- Never expose `ipcRenderer` directly to the renderer — use contextBridge
+- Channel names use `kebab-case`: e.g. `sidecar:status`, `config:update`
+- Avoid bidirectional IPC in a single call; use separate `invoke` + `on` pairs
+
+### Rust (sidecar/)
+
+- Use `thiserror` for error types; never `.unwrap()` in production paths
+- Audio pipeline: `pcm16` format only — 24 kHz, 16-bit, mono, little-endian
+- Keep capture (`cpal`) and transport (WebSocket) in separate async tasks
+- All OpenAI Realtime API messages must include the model in both the URL
+  query param and in `session.update` payload
+- Do **not** add `OpenAI-Beta` header — it routes to the deprecated beta endpoint
+
+### Config
+
+- `config.json` is the single source of truth for runtime settings
+- `openaiApiKey` is used for both LLM (gpt-4o) and STT (whisper-1)
+- Never hardcode API keys or secrets anywhere in the codebase
+- Config changes must remain backward-compatible; add fields, never rename
+
+## OpenAI Realtime API
+
+- **URL:** `wss://api.openai.com/v1/realtime?model=gpt-realtime-2`
+- **Auth:** `Authorization: Bearer <openaiApiKey>` header only
+- **Do NOT** add `OpenAI-Beta` header
+- Model must appear in both the URL query param and `session.update`
+- Session update event:
+  ```json
+  {
+    "type": "session.update",
+    "session": {
+      "model": "gpt-realtime-2",
+      "input_audio_transcription": { "model": "whisper-1" }
+    }
+  }
+  ```
+- Audio format: `pcm16` — 24 kHz, 16-bit, mono, little-endian (matches cpal)
+- VAD: server-side VAD via `input_audio_transcription` config
+
+## Testing
+
+```powershell
+# Rust tests
+pushd sidecar; cargo test; popd
+
+# JS/TS tests
+pnpm test
+```
+
+- Test actual behaviour; do not duplicate logic into tests
+- Avoid mocks where possible; test against real IPC and config paths
+- Run Rust tests from `sidecar/`, not the repo root
+
+## Type Checking
+
+Run `pnpm typecheck` from the repo root, or per-package where applicable.
+Never run `tsc` directly.
+
+## Known Build Notes
+
+- `electron-builder --win --dir` may fail on code signing (symlink privilege
+  error on Windows) — the unpacked app in `dist/win-unpacked/` is still fully
+  usable for testing
+- Always produce a fresh `win-expanded\CopilotX.exe` via all 7 build steps
+  before packaging a release; do not copy only the sidecar binary
