@@ -4,6 +4,7 @@ import { app } from 'electron'
 
 export interface AppConfig {
   hotkey: string
+  inputHotkey: string
   model: string
   openaiApiKey: string
   anthropicApiKey: string
@@ -56,6 +57,10 @@ export function validateConfig(config: AppConfig): string[] {
 
   if (!config.hotkey) {
     errors.push('hotkey is required')
+  }
+
+  if (!config.inputHotkey) {
+    errors.push('inputHotkey is required')
   }
 
   if (config.overlayOpacity < 0.1 || config.overlayOpacity > 1.0) {

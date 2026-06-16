@@ -1,5 +1,6 @@
 {
   "hotkey": "Ctrl+Shift+Space",
+  "inputHotkey": "Ctrl+Shift+K",
   "model": "gpt-4o",
   "openaiApiKey": "",
   "anthropicApiKey": "",
