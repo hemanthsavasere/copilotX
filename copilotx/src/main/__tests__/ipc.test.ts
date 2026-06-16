@@ -27,4 +27,20 @@ describe('SidecarMessage type parsing', () => {
     expect(msg.type).toBe('error')
     expect(msg.message).toBe('fail')
   })
+
+  it('parses a key_event message', () => {
+    const raw = '{"type":"key_event","key":"a","shift":false,"ctrl":false}'
+    const msg: SidecarMessage = JSON.parse(raw)
+    expect(msg.type).toBe('key_event')
+    expect(msg.key).toBe('a')
+    expect(msg.shift).toBe(false)
+    expect(msg.ctrl).toBe(false)
+  })
+
+  it('parses an input_mode_state message', () => {
+    const raw = '{"type":"input_mode_state","state":"active"}'
+    const msg: SidecarMessage = JSON.parse(raw)
+    expect(msg.type).toBe('input_mode_state')
+    expect(msg.state).toBe('active')
+  })
 })

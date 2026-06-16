@@ -5,6 +5,7 @@ import type { AppConfig } from '../config'
 describe('validateConfig', () => {
   const validConfig: AppConfig = {
     hotkey: 'CommandOrControl+Shift+Space',
+    inputHotkey: 'Ctrl+Shift+K',
     model: 'gpt-4o',
     openaiApiKey: 'sk-test',
     anthropicApiKey: '',
@@ -102,5 +103,11 @@ describe('validateConfig', () => {
     const config = { ...validConfig, profile: 'gaming' }
     const errors = validateConfig(config)
     expect(errors).toContainEqual(expect.stringContaining('profile'))
+  })
+
+  it('returns error for empty inputHotkey', () => {
+    const config = { ...validConfig, inputHotkey: '' }
+    const errors = validateConfig(config)
+    expect(errors).toContainEqual(expect.stringContaining('inputHotkey'))
   })
 })

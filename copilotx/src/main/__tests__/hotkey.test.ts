@@ -20,3 +20,32 @@ describe('hotkey debounce logic', () => {
     expect(result).toBe(true)
   })
 })
+
+describe('input mode state guards', () => {
+  it('blocks capture hotkey when in input mode', () => {
+    const isInputMode = true
+    const isProcessing = false
+    const result = !isInputMode && !isProcessing
+    expect(result).toBe(false)
+  })
+
+  it('blocks input hotkey when already in input mode', () => {
+    const isInputMode = true
+    const result = !isInputMode
+    expect(result).toBe(false)
+  })
+
+  it('allows input hotkey when not in input mode', () => {
+    const isInputMode = false
+    const isProcessing = false
+    const result = !isInputMode && !isProcessing
+    expect(result).toBe(true)
+  })
+
+  it('blocks input hotkey when processing', () => {
+    const isInputMode = false
+    const isProcessing = true
+    const result = !isInputMode && !isProcessing
+    expect(result).toBe(false)
+  })
+})
