@@ -1,19 +1,14 @@
 use anyhow::{Result, bail};
-use std::io::Write;
+use std::sync::mpsc::Sender;
 
 use crate::protocol::Message;
 
-fn print_message(msg: &Message) {
-    let stdout = std::io::stdout();
-    let mut writer = std::io::BufWriter::new(stdout.lock());
-    writeln!(writer, "{}", msg.to_ndjson()).ok();
-    writer.flush().ok();
-}
-
 pub async fn stream_openai(
+    tx: &Sender<Message>,
     api_key: &str,
     system_prompt: &str,
     image_base64: &str,
+    user_text: Option<&str>,
 ) -> Result<()> {
     use async_openai::{
         Client,
@@ -28,6 +23,8 @@ pub async fn stream_openai(
         },
     };
     use futures::StreamExt;
+
+    let prompt_text = user_text.unwrap_or("Analyze this screenshot and provide the answer.");
 
     let config = OpenAIConfig::new().with_api_key(api_key);
     let client = Client::with_config(config);
@@ -46,7 +43,7 @@ pub async fn stream_openai(
                     .content(ChatCompletionRequestUserMessageContent::Array(vec![
                         ChatCompletionRequestUserMessageContentPart::Text(
                             ChatCompletionRequestMessageContentPartTextArgs::default()
-                                .text("Analyze this screenshot and provide the answer.")
+                                .text(prompt_text)
                                 .build()?,
                         ),
                         ChatCompletionRequestUserMessageContentPart::ImageUrl(
@@ -72,31 +69,35 @@ pub async fn stream_openai(
             Ok(response) => {
                 for choice in response.choices {
                     if let Some(content) = choice.delta.content {
-                        print_message(&Message::Token { content });
+                        tx.send(Message::Token { content }).ok();
                     }
                 }
             }
             Err(e) => {
-                print_message(&Message::Error {
+                tx.send(Message::Error {
                     message: e.to_string(),
-                });
+                }).ok();
                 return Err(e.into());
             }
         }
     }
 
-    print_message(&Message::Done);
+    tx.send(Message::Done).ok();
     Ok(())
 }
 
 pub async fn stream_anthropic(
+    tx: &Sender<Message>,
     api_key: &str,
     system_prompt: &str,
     image_base64: &str,
+    user_text: Option<&str>,
 ) -> Result<()> {
     use reqwest::Client as HttpClient;
     use reqwest_eventsource::{Event, EventSource};
     use futures::StreamExt;
+
+    let prompt_text = user_text.unwrap_or("Analyze this screenshot and provide the answer.");
 
     let client = HttpClient::new();
     let body = serde_json::json!({
@@ -118,7 +119,7 @@ pub async fn stream_anthropic(
                     },
                     {
                         "type": "text",
-                        "text": "Analyze this screenshot and provide the answer."
+                        "text": prompt_text
                     }
                 ]
             }
@@ -143,13 +144,13 @@ pub async fn stream_anthropic(
                 match event_type {
                     "content_block_delta" => {
                         if let Some(text) = parsed["delta"]["text"].as_str() {
-                            print_message(&Message::Token {
+                            tx.send(Message::Token {
                                 content: text.to_string(),
-                            });
+                            }).ok();
                         }
                     }
                     "message_stop" => {
-                        print_message(&Message::Done);
+                        tx.send(Message::Done).ok();
                         es.close();
                         return Ok(());
                     }
@@ -157,9 +158,9 @@ pub async fn stream_anthropic(
                         let err_msg = parsed["error"]["message"]
                             .as_str()
                             .unwrap_or("Unknown Anthropic error");
-                        print_message(&Message::Error {
+                        tx.send(Message::Error {
                             message: err_msg.to_string(),
-                        });
+                        }).ok();
                         bail!("Anthropic API error: {}", err_msg);
                     }
                     _ => {}
@@ -168,6 +169,6 @@ pub async fn stream_anthropic(
         }
     }
 
-    print_message(&Message::Done);
+    tx.send(Message::Done).ok();
     Ok(())
 }
