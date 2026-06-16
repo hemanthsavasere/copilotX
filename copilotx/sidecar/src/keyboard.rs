@@ -129,8 +129,8 @@ unsafe extern "system" fn keyboard_hook_callback(
                 }
             });
             INACTIVITY_TIMER.with(|t| *t.borrow_mut() = std::time::Instant::now());
+            return windows::Win32::Foundation::LRESULT(1);
         }
-        return windows::Win32::Foundation::LRESULT(1);
     }
 
     CallNextHookEx(None, code, wparam, lparam)
