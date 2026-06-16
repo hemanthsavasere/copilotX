@@ -2,6 +2,7 @@ mod capture;
 mod config;
 mod llm;
 mod profiles;
+mod keyboard;
 mod protocol;
 
 use protocol::{Command, Message};
