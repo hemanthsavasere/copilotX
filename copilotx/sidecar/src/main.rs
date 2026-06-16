@@ -42,6 +42,7 @@ async fn main() {
     });
 
     let is_processing = Arc::new(AtomicBool::new(false));
+    let mut hook_handle: Option<keyboard::HookHandle> = None;
     let stdin = io::stdin();
 
     for line in stdin.lock().lines() {
@@ -113,21 +114,29 @@ async fn main() {
             }
             Command::Shutdown => break,
             Command::StartInputMode => {
-                #[cfg(target_os = "windows")]
-                {
-                    send_error(&tx, "Input mode not yet implemented");
-                    tx.send(Message::InputModeState { state: "error".into() }).ok();
-                }
-                #[cfg(not(target_os = "windows"))]
-                {
-                    send_error(&tx, "Input mode not supported on this platform");
-                    tx.send(Message::InputModeState { state: "error".into() }).ok();
+                match keyboard::start_keyboard_hook(tx.clone()) {
+                    Ok(handle) => {
+                        hook_handle = Some(handle);
+                        tx.send(Message::InputModeState { state: "active".into() }).ok();
+                    }
+                    Err(e) => {
+                        send_error(&tx, &format!("Hook registration failed: {}", e));
+                        tx.send(Message::InputModeState { state: "error".into() }).ok();
+                    }
                 }
             }
             Command::StopInputMode => {
+                if let Some(handle) = hook_handle.take() {
+                    keyboard::stop_keyboard_hook(handle);
+                }
                 tx.send(Message::InputModeState { state: "inactive".into() }).ok();
             }
             Command::CaptureWithText { content } => {
+                if let Some(handle) = hook_handle.take() {
+                    keyboard::stop_keyboard_hook(handle);
+                }
+                tx.send(Message::InputModeState { state: "inactive".into() }).ok();
+
                 if is_processing.load(Ordering::SeqCst) {
                     send_error(&tx, "Already processing");
                     continue;

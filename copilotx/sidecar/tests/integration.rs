@@ -56,15 +56,20 @@ fn test_shutdown() {
 }
 
 #[test]
-fn test_start_input_mode_non_windows() {
+fn test_start_input_mode() {
     let mut f = NamedTempFile::new().unwrap();
     write!(f, "{}", valid_config_json()).unwrap();
+    let expected = if cfg!(target_os = "windows") {
+        r#"{"type":"input_mode_state","state":"active"}"#
+    } else {
+        r#"{"type":"input_mode_state","state":"error"}"#
+    };
     Command::cargo_bin("system-helper")
         .unwrap()
         .env("COPILOTX_CONFIG", f.path())
         .write_stdin(r#"{"type":"start_input_mode"}"#)
         .assert()
-        .stdout(predicate::str::contains(r#"{"type":"input_mode_state","state":"error"}"#));
+        .stdout(predicate::str::contains(expected));
 }
 
 #[test]
