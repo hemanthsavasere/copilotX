@@ -53,7 +53,7 @@ export default function App() {
       }
     })
 
-    window.api.onKeyEvent((key: string, shift: boolean, ctrl: boolean) => {
+    window.api.onKeyEvent((key: string, _shift: boolean, ctrl: boolean) => {
       if (!inputModeActiveRef.current) return
 
       if (ctrl) return
