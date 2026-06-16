@@ -103,43 +103,43 @@ mod tests {
     }
 
     #[test]
-    fn test_command_start_input_mode() {
+    fn test_command_deserialize_start_input_mode() {
         let cmd: Command = serde_json::from_str(r#"{"type":"start_input_mode"}"#).unwrap();
         assert_eq!(cmd, Command::StartInputMode);
     }
 
     #[test]
-    fn test_command_stop_input_mode() {
+    fn test_command_deserialize_stop_input_mode() {
         let cmd: Command = serde_json::from_str(r#"{"type":"stop_input_mode"}"#).unwrap();
         assert_eq!(cmd, Command::StopInputMode);
     }
 
     #[test]
-    fn test_command_capture_with_text() {
+    fn test_command_deserialize_capture_with_text() {
         let cmd: Command = serde_json::from_str(r#"{"type":"capture_with_text","content":"hello"}"#).unwrap();
         assert_eq!(cmd, Command::CaptureWithText { content: "hello".to_string() });
     }
 
     #[test]
-    fn test_message_key_event() {
+    fn test_message_key_event_to_ndjson() {
         let msg = Message::KeyEvent { key: "a".into(), shift: false, ctrl: false };
         assert_eq!(msg.to_ndjson(), r#"{"type":"key_event","key":"a","shift":false,"ctrl":false}"#);
     }
 
     #[test]
-    fn test_message_input_mode_state_active() {
+    fn test_message_input_mode_state_active_to_ndjson() {
         let msg = Message::InputModeState { state: "active".into() };
         assert_eq!(msg.to_ndjson(), r#"{"type":"input_mode_state","state":"active"}"#);
     }
 
     #[test]
-    fn test_message_input_mode_state_inactive() {
+    fn test_message_input_mode_state_inactive_to_ndjson() {
         let msg = Message::InputModeState { state: "inactive".into() };
         assert_eq!(msg.to_ndjson(), r#"{"type":"input_mode_state","state":"inactive"}"#);
     }
 
     #[test]
-    fn test_message_input_mode_state_error() {
+    fn test_message_input_mode_state_error_to_ndjson() {
         let msg = Message::InputModeState { state: "error".into() };
         assert_eq!(msg.to_ndjson(), r#"{"type":"input_mode_state","state":"error"}"#);
     }
