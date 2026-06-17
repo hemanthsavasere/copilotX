@@ -1,6 +1,9 @@
 const fs = require('fs')
 const path = require('path')
 
+const config = require('../config/config.json')
+const sidecarName = config.sidecarName || 'svchost'
+
 const targetTriple = process.env.TARGET_TRIPLE || ''
 const targetDir = targetTriple
   ? path.join('sidecar', 'target', targetTriple, 'release')
@@ -20,7 +23,7 @@ const exeExt = process.env.TARGET_OS
       : ''
 
 const srcPath = path.join(__dirname, '..', targetDir, 'system-helper' + exeExt)
-const sidecarDest = path.join(resourcesDir, 'system-helper' + exeExt)
+const sidecarDest = path.join(resourcesDir, sidecarName + exeExt)
 
 if (fs.existsSync(srcPath)) {
   fs.copyFileSync(srcPath, sidecarDest)
