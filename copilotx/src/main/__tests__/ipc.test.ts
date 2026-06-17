@@ -1,4 +1,11 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
+import * as path from 'path'
+
+vi.mock('@electron-toolkit/utils', () => ({
+  is: { dev: false }
+}))
+
+import { getSidecarPath } from '../ipc'
 import type { SidecarMessage } from '../ipc'
 
 describe('SidecarMessage type parsing', () => {
@@ -42,5 +49,32 @@ describe('SidecarMessage type parsing', () => {
     const msg: SidecarMessage = JSON.parse(raw)
     expect(msg.type).toBe('input_mode_state')
     expect(msg.state).toBe('active')
+  })
+})
+
+describe('getSidecarPath', () => {
+  it('constructs dev path with sidecarName on Linux', () => {
+    const result = getSidecarPath('svchost', true, '/resources', '/project/src/main', 'linux')
+    expect(result).toBe(path.join('/project/src/main', '../../sidecar/target/release/svchost'))
+  })
+
+  it('constructs production path with sidecarName on Linux', () => {
+    const result = getSidecarPath('svchost', false, '/app/resources', '', 'linux')
+    expect(result).toBe(path.join('/app/resources', 'svchost'))
+  })
+
+  it('constructs dev path with sidecarName on Windows', () => {
+    const result = getSidecarPath('svchost', true, 'C:\\resources', 'C:\\project\\src\\main', 'win32')
+    expect(result).toBe(path.join('C:\\project\\src\\main', '../../sidecar/target/release/svchost.exe'))
+  })
+
+  it('constructs production path with sidecarName on Windows', () => {
+    const result = getSidecarPath('svchost', false, 'C:\\app\\resources', '', 'win32')
+    expect(result).toBe(path.join('C:\\app\\resources', 'svchost.exe'))
+  })
+
+  it('falls back to system-helper when sidecarName is empty', () => {
+    const result = getSidecarPath('', false, '/resources', '', 'linux')
+    expect(result).toBe(path.join('/resources', 'system-helper'))
   })
 })
