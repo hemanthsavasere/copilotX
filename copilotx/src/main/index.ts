@@ -25,7 +25,7 @@ app.whenReady().then(() => {
     console.warn('Config warnings:', errors.join('; '))
   }
 
-  startSidecar()
+  startSidecar(config.sidecarName)
   overlayWindow = createOverlayWindow(config)
 
   onSidecarMessage((msg) => {
@@ -69,7 +69,7 @@ app.whenReady().then(() => {
   })
 
   ipcMain.handle('window-close', () => {
-    overlayWindow?.hide()
+    overlayWindow?.close()
   })
 
   ipcMain.handle('send-text-input', (_event, text: string) => {
