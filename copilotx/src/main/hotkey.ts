@@ -44,10 +44,6 @@ export function setProcessingComplete(): void {
   isProcessing = false
 }
 
-export function setInputModeActive(): void {
-  isInputMode = true
-}
-
 export function setInputModeInactive(): void {
   isInputMode = false
 }

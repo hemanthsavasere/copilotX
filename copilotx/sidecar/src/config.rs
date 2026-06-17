@@ -6,24 +6,12 @@ use std::fs;
 #[derive(Debug, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Config {
-    pub hotkey: String,
-    #[serde(default = "default_input_hotkey")]
-    pub input_hotkey: String,
     pub model: String,
     #[serde(default)]
     pub openai_api_key: String,
     #[serde(default)]
     pub anthropic_api_key: String,
     pub profile: String,
-    pub overlay_opacity: f64,
-    pub overlay_width: u32,
-    #[serde(default)]
-    pub overlay_height: u32,
-    pub overlay_position: String,
-}
-
-fn default_input_hotkey() -> String {
-    "Ctrl+Shift+K".to_string()
 }
 
 impl Config {
@@ -68,27 +56,6 @@ impl Config {
             );
         }
 
-        if self.hotkey.is_empty() {
-            errors.push("hotkey is required".to_string());
-        }
-
-        if self.overlay_opacity < 0.1 || self.overlay_opacity > 1.0 {
-            errors.push("overlayOpacity must be between 0.1 and 1.0".to_string());
-        }
-
-        if self.overlay_width < 200 || self.overlay_width > 800 {
-            errors.push("overlayWidth must be between 200 and 800".to_string());
-        }
-
-        let valid_positions = ["left", "right", "top", "bottom"];
-        if !valid_positions.contains(&self.overlay_position.as_str()) {
-            errors.push(format!(
-                "Unknown overlayPosition: {}. Supported: {}",
-                self.overlay_position,
-                valid_positions.join(", ")
-            ));
-        }
-
         errors
     }
 }
@@ -101,16 +68,10 @@ mod tests {
 
     fn make_valid_config_json() -> String {
         r#"{
-            "hotkey": "CommandOrControl+Shift+Space",
-            "inputHotkey": "Ctrl+Shift+K",
             "model": "gpt-4o",
             "openaiApiKey": "sk-test",
             "anthropicApiKey": "",
-            "profile": "interview",
-            "overlayOpacity": 0.85,
-            "overlayWidth": 320,
-            "overlayHeight": 600,
-            "overlayPosition": "right"
+            "profile": "interview"
         }"#
         .to_string()
     }
@@ -121,7 +82,6 @@ mod tests {
         write!(f, "{}", make_valid_config_json()).unwrap();
         let config = Config::load_from_path(f.path().to_str().unwrap()).unwrap();
         assert_eq!(config.model, "gpt-4o");
-        assert_eq!(config.hotkey, "CommandOrControl+Shift+Space");
     }
 
     #[test]
@@ -135,16 +95,10 @@ mod tests {
     #[test]
     fn test_validate_missing_api_key() {
         let json = r#"{
-            "hotkey": "CommandOrControl+Shift+Space",
-            "inputHotkey": "Ctrl+Shift+K",
             "model": "gpt-4o",
             "openaiApiKey": "",
             "anthropicApiKey": "",
-            "profile": "interview",
-            "overlayOpacity": 0.85,
-            "overlayWidth": 320,
-            "overlayHeight": 600,
-            "overlayPosition": "right"
+            "profile": "interview"
         }"#;
         let mut f = NamedTempFile::new().unwrap();
         write!(f, "{}", json).unwrap();
@@ -156,16 +110,10 @@ mod tests {
     #[test]
     fn test_validate_unknown_model() {
         let json = r#"{
-            "hotkey": "CommandOrControl+Shift+Space",
-            "inputHotkey": "Ctrl+Shift+K",
             "model": "gpt-3",
             "openaiApiKey": "sk-test",
             "anthropicApiKey": "",
-            "profile": "interview",
-            "overlayOpacity": 0.85,
-            "overlayWidth": 320,
-            "overlayHeight": 600,
-            "overlayPosition": "right"
+            "profile": "interview"
         }"#;
         let mut f = NamedTempFile::new().unwrap();
         write!(f, "{}", json).unwrap();
@@ -178,45 +126,5 @@ mod tests {
     fn test_load_missing_file() {
         let result = Config::load_from_path("/nonexistent/path/config.json");
         assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_load_config_with_input_hotkey() {
-        let json = r#"{
-            "hotkey": "CommandOrControl+Shift+Space",
-            "inputHotkey": "Ctrl+Shift+K",
-            "model": "gpt-4o",
-            "openaiApiKey": "sk-test",
-            "anthropicApiKey": "",
-            "profile": "interview",
-            "overlayOpacity": 0.85,
-            "overlayWidth": 320,
-            "overlayHeight": 600,
-            "overlayPosition": "right"
-        }"#;
-        let mut f = NamedTempFile::new().unwrap();
-        write!(f, "{}", json).unwrap();
-        let config = Config::load_from_path(f.path().to_str().unwrap()).unwrap();
-        assert_eq!(config.input_hotkey, "Ctrl+Shift+K");
-        assert_eq!(config.overlay_height, 600);
-    }
-
-    #[test]
-    fn test_input_hotkey_defaults_when_missing() {
-        let json = r#"{
-            "hotkey": "CommandOrControl+Shift+Space",
-            "model": "gpt-4o",
-            "openaiApiKey": "sk-test",
-            "anthropicApiKey": "",
-            "profile": "interview",
-            "overlayOpacity": 0.85,
-            "overlayWidth": 320,
-            "overlayPosition": "right"
-        }"#;
-        let mut f = NamedTempFile::new().unwrap();
-        write!(f, "{}", json).unwrap();
-        let config = Config::load_from_path(f.path().to_str().unwrap()).unwrap();
-        assert_eq!(config.input_hotkey, "Ctrl+Shift+K");
-        assert_eq!(config.overlay_height, 0);
     }
 }
