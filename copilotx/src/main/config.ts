@@ -13,6 +13,8 @@ export interface AppConfig {
   overlayWidth: number
   overlayHeight: number
   overlayPosition: string
+  processName: string
+  sidecarName: string
 }
 
 export function loadConfig(): AppConfig {
@@ -80,6 +82,22 @@ export function validateConfig(config: AppConfig): string[] {
     errors.push(
       `Unknown overlayPosition: ${config.overlayPosition}. Supported: ${validPositions.join(', ')}`
     )
+  }
+
+  if (!config.processName) {
+    errors.push('processName is required')
+  }
+
+  if (/[/\\]/.test(config.processName)) {
+    errors.push('processName must not contain path separators')
+  }
+
+  if (!config.sidecarName) {
+    errors.push('sidecarName is required')
+  }
+
+  if (/[/\\]/.test(config.sidecarName)) {
+    errors.push('sidecarName must not contain path separators')
   }
 
   const validProfiles = ['interview', 'sales', 'meeting', 'presentation', 'negotiation']

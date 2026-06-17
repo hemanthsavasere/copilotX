@@ -1,4 +1,4 @@
-import { BrowserWindow, screen } from 'electron'
+import { app, BrowserWindow, screen } from 'electron'
 import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
 import type { AppConfig } from './config'
@@ -33,6 +33,10 @@ export function createOverlayWindow(config: AppConfig): BrowserWindow {
 
   win.setAlwaysOnTop(true, 'screen-saver')
   win.setContentProtection(true)
+
+  win.on('close', () => {
+    app.quit()
+  })
 
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     win.loadURL(process.env['ELECTRON_RENDERER_URL'])

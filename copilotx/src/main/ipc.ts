@@ -20,6 +20,7 @@ let messageHandler: SidecarMessageHandler | null = null
 let restartAttempts = 0
 let restartTimer: ReturnType<typeof setTimeout> | null = null
 const MAX_RESTART_ATTEMPTS = 3
+let currentSidecarName: string = 'system-helper'
 
 function handleSidecarExit(code: number | null, signal: string | null): void {
   console.error(`[sidecar] exited with code=${code} signal=${signal}`)
@@ -28,11 +29,29 @@ function handleSidecarExit(code: number | null, signal: string | null): void {
   if (restartAttempts < MAX_RESTART_ATTEMPTS) {
     restartAttempts++
     console.log(`[sidecar] Restarting (attempt ${restartAttempts}/${MAX_RESTART_ATTEMPTS})...`)
-    restartTimer = setTimeout(() => startSidecar(), 2000 * restartAttempts)
+    restartTimer = setTimeout(() => startSidecar(currentSidecarName), 2000 * restartAttempts)
   }
 }
 
-export function startSidecar(): void {
+export function getSidecarPath(
+  sidecarName: string,
+  isDev: boolean,
+  resourcesPath: string,
+  dirname: string,
+  platform: string
+): string {
+  const exeExt = platform === 'win32' ? '.exe' : ''
+  const name = sidecarName || 'system-helper'
+  return isDev
+    ? path.join(dirname, `../../sidecar/target/release/${name}${exeExt}`)
+    : path.join(resourcesPath, `${name}${exeExt}`)
+}
+
+export function startSidecar(sidecarName?: string): void {
+  if (sidecarName) {
+    currentSidecarName = sidecarName
+  }
+
   if (restartTimer) {
     clearTimeout(restartTimer)
     restartTimer = null
@@ -44,10 +63,13 @@ export function startSidecar(): void {
 
   restartAttempts = 0
 
-  const exeExt = process.platform === 'win32' ? '.exe' : ''
-  const sidecarPath = is.dev
-    ? path.join(__dirname, `../../sidecar/target/release/system-helper${exeExt}`)
-    : path.join(process.resourcesPath, `system-helper${exeExt}`)
+  const sidecarPath = getSidecarPath(
+    currentSidecarName,
+    is.dev,
+    process.resourcesPath,
+    __dirname,
+    process.platform
+  )
 
   sidecar = spawn(sidecarPath, [], {
     stdio: ['pipe', 'pipe', 'pipe'],

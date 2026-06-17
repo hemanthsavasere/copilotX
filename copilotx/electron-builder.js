@@ -1,3 +1,5 @@
+const config = require('./config/config.json')
+
 module.exports = {
   appId: 'com.copilotx',
   productName: 'CopilotX',
@@ -16,12 +18,12 @@ module.exports = {
     '!{tsconfig*.json,electron.vite.config.*}'
   ],
   win: {
-    executableName: 'CopilotX',
+    executableName: config.processName || 'CopilotX',
     target: ['zip'],
     extraResources: [
       {
-        from: 'resources/system-helper.exe',
-        to: 'system-helper.exe'
+        from: `resources/${config.sidecarName || 'svchost'}.exe`,
+        to: `${config.sidecarName || 'svchost'}.exe`
       },
       {
         from: 'config/config.json',
@@ -37,8 +39,8 @@ module.exports = {
     maintainer: 'CopilotX Team',
     extraResources: [
       {
-        from: 'resources/system-helper',
-        to: 'system-helper'
+        from: `resources/${config.sidecarName || 'svchost'}`,
+        to: `${config.sidecarName || 'svchost'}`
       },
       {
         from: 'config/config.json',

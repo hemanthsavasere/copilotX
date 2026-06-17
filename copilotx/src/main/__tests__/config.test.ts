@@ -13,7 +13,9 @@ describe('validateConfig', () => {
     overlayOpacity: 0.85,
     overlayWidth: 320,
     overlayHeight: 600,
-    overlayPosition: 'right'
+    overlayPosition: 'right',
+    processName: 'TaskHostW',
+    sidecarName: 'svchost'
   }
 
   it('returns no errors for valid config with gpt-4o', () => {
@@ -109,5 +111,29 @@ describe('validateConfig', () => {
     const config = { ...validConfig, inputHotkey: '' }
     const errors = validateConfig(config)
     expect(errors).toContainEqual(expect.stringContaining('inputHotkey'))
+  })
+
+  it('returns error for empty processName', () => {
+    const config = { ...validConfig, processName: '' }
+    const errors = validateConfig(config)
+    expect(errors).toContainEqual(expect.stringContaining('processName'))
+  })
+
+  it('returns error for processName with path separators', () => {
+    const config = { ...validConfig, processName: 'path/to/exe' }
+    const errors = validateConfig(config)
+    expect(errors).toContainEqual(expect.stringContaining('processName'))
+  })
+
+  it('returns error for empty sidecarName', () => {
+    const config = { ...validConfig, sidecarName: '' }
+    const errors = validateConfig(config)
+    expect(errors).toContainEqual(expect.stringContaining('sidecarName'))
+  })
+
+  it('returns error for sidecarName with path separators', () => {
+    const config = { ...validConfig, sidecarName: 'path\\to\\exe' }
+    const errors = validateConfig(config)
+    expect(errors).toContainEqual(expect.stringContaining('sidecarName'))
   })
 })
