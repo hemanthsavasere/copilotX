@@ -3467,7 +3467,6 @@ dependencies = [
  "serde",
  "serde_json",
  "tempfile",
- "thiserror 2.0.18",
  "tokio",
  "windows 0.58.0",
  "xcap",

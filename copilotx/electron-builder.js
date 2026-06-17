@@ -29,13 +29,6 @@ module.exports = {
       }
     ]
   },
-  nsis: {
-    artifactName: '${name}-${version}-setup.${ext}',
-    shortcutName: 'CopilotX',
-    uninstallDisplayName: 'CopilotX',
-    createDesktopShortcut: 'always',
-    oneClick: true
-  },
   npmRebuild: false,
   linux: {
     executableName: 'copilotx',

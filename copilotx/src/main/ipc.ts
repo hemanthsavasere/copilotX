@@ -110,10 +110,6 @@ export function sendCapture(): void {
   writeSidecar({ type: 'capture' })
 }
 
-export function sendPing(): void {
-  writeSidecar({ type: 'ping' })
-}
-
 export function sendStartInputMode(): void {
   writeSidecar({ type: 'start_input_mode' })
 }

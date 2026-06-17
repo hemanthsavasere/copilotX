@@ -29,10 +29,6 @@ html, body, #root {
   animation: error-pulse 1.5s ease-in-out infinite;
 }
 
-.overlay.streaming {
-  border-color: rgba(40, 167, 69, 0.4);
-}
-
 .title-bar {
   -webkit-app-region: drag;
   display: flex;

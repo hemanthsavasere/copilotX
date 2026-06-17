@@ -16,12 +16,5 @@ const api = {
   close: () => ipcRenderer.invoke('window-close')
 }
 
-if (process.contextIsolated) {
-  contextBridge.exposeInMainWorld('electron', electronAPI)
-  contextBridge.exposeInMainWorld('api', api)
-} else {
-  // @ts-expect-error fallback for non-isolated context
-  window.electron = electronAPI
-  // @ts-expect-error fallback for non-isolated context
-  window.api = api
-}
+contextBridge.exposeInMainWorld('electron', electronAPI)
+contextBridge.exposeInMainWorld('api', api)

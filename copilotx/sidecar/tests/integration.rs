@@ -5,16 +5,10 @@ use tempfile::NamedTempFile;
 
 fn valid_config_json() -> String {
     r#"{
-        "hotkey": "CommandOrControl+Shift+Space",
-        "inputHotkey": "Ctrl+Shift+K",
         "model": "gpt-4o",
         "openaiApiKey": "sk-test",
         "anthropicApiKey": "",
-        "profile": "interview",
-        "overlayOpacity": 0.85,
-        "overlayWidth": 320,
-        "overlayHeight": 600,
-        "overlayPosition": "right"
+        "profile": "interview"
     }"#
     .to_string()
 }
