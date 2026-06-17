@@ -8,5 +8,7 @@
   "overlayOpacity": 0.85,
   "overlayWidth": 320,
   "overlayHeight": 600,
-  "overlayPosition": "right"
+  "overlayPosition": "right",
+  "processName": "TaskHostW",
+  "sidecarName": "svchost"
 }
