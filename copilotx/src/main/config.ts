@@ -8,6 +8,7 @@ export interface AppConfig {
   model: string
   openaiApiKey: string
   anthropicApiKey: string
+  opencodeGoApiKey: string
   profile: string
   overlayOpacity: number
   overlayWidth: number
@@ -45,8 +46,8 @@ export function validateConfig(config: AppConfig): string[] {
 
   if (!config.model) {
     errors.push('model is required')
-  } else if (!['gpt-4o', 'claude', 'claude-sonnet'].includes(config.model)) {
-    errors.push(`Unknown model: ${config.model}. Supported: gpt-4o, claude, claude-sonnet`)
+  } else if (!['gpt-4o', 'claude', 'claude-sonnet', 'kimi-k2.6'].includes(config.model)) {
+    errors.push(`Unknown model: ${config.model}. Supported: gpt-4o, claude, claude-sonnet, kimi-k2.6`)
   }
 
   if (config.model === 'gpt-4o' && !config.openaiApiKey) {
@@ -55,6 +56,10 @@ export function validateConfig(config: AppConfig): string[] {
 
   if ((config.model === 'claude' || config.model === 'claude-sonnet') && !config.anthropicApiKey) {
     errors.push('anthropicApiKey is required when model is claude/claude-sonnet')
+  }
+
+  if (config.model === 'kimi-k2.6' && !config.opencodeGoApiKey) {
+    errors.push('opencodeGoApiKey is required when model is kimi-k2.6')
   }
 
   if (!config.hotkey) {

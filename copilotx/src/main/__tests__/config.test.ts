@@ -9,6 +9,7 @@ describe('validateConfig', () => {
     model: 'gpt-4o',
     openaiApiKey: 'sk-test',
     anthropicApiKey: '',
+    opencodeGoApiKey: '',
     profile: 'interview',
     overlayOpacity: 0.85,
     overlayWidth: 320,
@@ -135,5 +136,17 @@ describe('validateConfig', () => {
     const config = { ...validConfig, sidecarName: 'path\\to\\exe' }
     const errors = validateConfig(config)
     expect(errors).toContainEqual(expect.stringContaining('sidecarName'))
+  })
+
+  it('returns no errors for valid config with kimi-k2.6', () => {
+    const config = { ...validConfig, model: 'kimi-k2.6', opencodeGoApiKey: 'sk-zen-test', openaiApiKey: '' }
+    const errors = validateConfig(config)
+    expect(errors).toHaveLength(0)
+  })
+
+  it('returns error when opencodeGoApiKey missing for kimi-k2.6', () => {
+    const config = { ...validConfig, model: 'kimi-k2.6', opencodeGoApiKey: '' }
+    const errors = validateConfig(config)
+    expect(errors).toContainEqual(expect.stringContaining('opencodeGoApiKey'))
   })
 })
