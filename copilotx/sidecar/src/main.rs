@@ -95,7 +95,28 @@ async fn main() {
 
                 let result = match config.model.as_str() {
                     "gpt-4o" => {
-                        llm::stream_openai(&tx, &config.openai_api_key, &system_prompt, &image_b64, None).await
+                        llm::stream_openai(
+                            &tx,
+                            &config.openai_api_key,
+                            "https://api.openai.com/v1",
+                            "gpt-4o",
+                            &system_prompt,
+                            &image_b64,
+                            None,
+                        )
+                        .await
+                    }
+                    "kimi-k2.6" => {
+                        llm::stream_openai(
+                            &tx,
+                            &config.opencode_go_api_key,
+                            "https://opencode.ai/zen/v1",
+                            "kimi-k2.6",
+                            &system_prompt,
+                            &image_b64,
+                            None,
+                        )
+                        .await
                     }
                     "claude" | "claude-sonnet" => {
                         llm::stream_anthropic(&tx, &config.anthropic_api_key, &system_prompt, &image_b64, None).await
@@ -166,7 +187,28 @@ async fn main() {
 
                 let result = match config.model.as_str() {
                     "gpt-4o" => {
-                        llm::stream_openai(&tx, &config.openai_api_key, &system_prompt, &image_b64, Some(&content)).await
+                        llm::stream_openai(
+                            &tx,
+                            &config.openai_api_key,
+                            "https://api.openai.com/v1",
+                            "gpt-4o",
+                            &system_prompt,
+                            &image_b64,
+                            Some(&content),
+                        )
+                        .await
+                    }
+                    "kimi-k2.6" => {
+                        llm::stream_openai(
+                            &tx,
+                            &config.opencode_go_api_key,
+                            "https://opencode.ai/zen/v1",
+                            "kimi-k2.6",
+                            &system_prompt,
+                            &image_b64,
+                            Some(&content),
+                        )
+                        .await
                     }
                     "claude" | "claude-sonnet" => {
                         llm::stream_anthropic(&tx, &config.anthropic_api_key, &system_prompt, &image_b64, Some(&content)).await
