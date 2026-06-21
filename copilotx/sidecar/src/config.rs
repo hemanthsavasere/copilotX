@@ -11,6 +11,8 @@ pub struct Config {
     pub openai_api_key: String,
     #[serde(default)]
     pub anthropic_api_key: String,
+    #[serde(default)]
+    pub opencode_go_api_key: String,
     pub profile: String,
 }
 
@@ -37,9 +39,12 @@ impl Config {
     pub fn validate(&self) -> Vec<String> {
         let mut errors = Vec::new();
 
-        if !matches!(self.model.as_str(), "gpt-4o" | "claude" | "claude-sonnet") {
+        if !matches!(
+            self.model.as_str(),
+            "gpt-4o" | "claude" | "claude-sonnet" | "kimi-k2.6"
+        ) {
             errors.push(format!(
-                "Unknown model: {}. Supported: gpt-4o, claude, claude-sonnet",
+                "Unknown model: {}. Supported: gpt-4o, claude, claude-sonnet, kimi-k2.6",
                 self.model
             ));
         }
@@ -54,6 +59,10 @@ impl Config {
             errors.push(
                 "anthropicApiKey is required when model is claude/claude-sonnet".to_string(),
             );
+        }
+
+        if self.model == "kimi-k2.6" && self.opencode_go_api_key.is_empty() {
+            errors.push("opencodeGoApiKey is required when model is kimi-k2.6".to_string());
         }
 
         errors
@@ -126,5 +135,35 @@ mod tests {
     fn test_load_missing_file() {
         let result = Config::load_from_path("/nonexistent/path/config.json");
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_validate_valid_kimi_config() {
+        let json = r#"{
+            "model": "kimi-k2.6",
+            "openaiApiKey": "",
+            "anthropicApiKey": "",
+            "opencodeGoApiKey": "sk-zen-test",
+            "profile": "interview"
+        }"#;
+        let mut f = NamedTempFile::new().unwrap();
+        write!(f, "{}", json).unwrap();
+        let config = Config::load_from_path(f.path().to_str().unwrap()).unwrap();
+        assert_eq!(config.validate().len(), 0);
+    }
+
+    #[test]
+    fn test_validate_missing_opencode_go_api_key() {
+        let json = r#"{
+            "model": "kimi-k2.6",
+            "openaiApiKey": "",
+            "anthropicApiKey": "",
+            "profile": "interview"
+        }"#;
+        let mut f = NamedTempFile::new().unwrap();
+        write!(f, "{}", json).unwrap();
+        let config = Config::load_from_path(f.path().to_str().unwrap()).unwrap();
+        let errors = config.validate();
+        assert!(errors.iter().any(|e| e.contains("opencodeGoApiKey")));
     }
 }
