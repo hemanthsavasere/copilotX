@@ -6,6 +6,8 @@ use crate::protocol::Message;
 pub async fn stream_openai(
     tx: &Sender<Message>,
     api_key: &str,
+    base_url: &str,
+    model: &str,
     system_prompt: &str,
     image_base64: &str,
     user_text: Option<&str>,
@@ -26,11 +28,13 @@ pub async fn stream_openai(
 
     let prompt_text = user_text.unwrap_or("Analyze this screenshot and provide the answer.");
 
-    let config = OpenAIConfig::new().with_api_key(api_key);
+    let config = OpenAIConfig::new()
+        .with_api_key(api_key)
+        .with_api_base(base_url);
     let client = Client::with_config(config);
 
     let request = CreateChatCompletionRequestArgs::default()
-        .model("gpt-4o")
+        .model(model)
         .stream(true)
         .messages(vec![
             ChatCompletionRequestMessage::System(
