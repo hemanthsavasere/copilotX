@@ -4,6 +4,7 @@
   "model": "gpt-4o",
   "openaiApiKey": "",
   "anthropicApiKey": "",
+  "opencodeGoApiKey": "",
   "profile": "interview",
   "overlayOpacity": 0.85,
   "overlayWidth": 320,
